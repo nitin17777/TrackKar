@@ -6,7 +6,7 @@
 
 **Track smarter. Build faster.**
 
-Real-time team task tracker for hackathons and deadline-driven teams — no signups, no complexity.
+Real-time team task tracker for hackathons and deadline-driven teams - no signups, no complexity.
 
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black)](https://reactjs.org/)
 [![Firebase](https://img.shields.io/badge/Firebase-10-FFCA28?style=flat-square&logo=firebase&logoColor=black)](https://firebase.google.com/)
