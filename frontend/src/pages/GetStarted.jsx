@@ -43,6 +43,7 @@ export default function GetStarted() {
       .orbit-dot2 { position:absolute; width:6px; height:6px; border-radius:50%; top:50%; left:50%; margin:-3px; animation: orbitDot2 8s linear infinite; }
     `;
     document.head.appendChild(style);
+    document.title = 'TrackKar — Get Started';
     setTimeout(() => setReady(true), 40);
   }, []);
 

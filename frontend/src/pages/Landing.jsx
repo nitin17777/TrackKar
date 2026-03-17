@@ -171,6 +171,7 @@ export default function Landing() {
       .live-dot { animation: blink 2s ease-in-out infinite; }
     `;
     document.head.appendChild(style);
+    document.title = 'TrackKar — Track Smarter, Build Faster';
     setTimeout(() => setReady(true), 40);
   }, []);
 

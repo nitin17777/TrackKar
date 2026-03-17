@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { db } from "../services/firebase";
 
 import GlassCard from "../components/ui/GlassCard";
 import PrimaryBtn from "../components/ui/PrimaryBtn";
@@ -100,13 +102,14 @@ export default function JoinTeam() {
       }
     `;
     document.head.appendChild(style);
+    document.title = 'TrackKar — Join Team';
     setTimeout(() => setReady(true), 40);
   }, []);
 
   /* Live code char preview */
   const codeChars = code.padEnd(6, "·").split("");
 
-  const handleJoin = () => {
+  const handleJoin = async () => {
     if (!code.trim() || !name.trim()) {
       setError("Please enter your team code and name.");
       return;
@@ -117,20 +120,34 @@ export default function JoinTeam() {
     }
     setError("");
     setLoading(true);
-    setTimeout(() => {
+
+    try {
       const upperCode = code.toUpperCase();
-      navigate(`/team/${upperCode}`, {
-        state: {
-          project: {
-            name: "Joined Project",
-            owner: "Unknown",
-            code: upperCode,
-            members: [name],
-          },
-          currentUser: name,
-        },
-      });
-    }, 600);
+      const docRef = doc(db, "projects", upperCode);
+
+      // Timeout guard — if Firebase hangs for >10s, surface the error
+      const timeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Request timed out. Check Firestore is created and rules allow reads.")), 10000)
+      );
+
+      const docSnap = await Promise.race([getDoc(docRef), timeout]);
+
+      if (docSnap.exists()) {
+        await updateDoc(docRef, {
+          members: arrayUnion(name.trim())
+        });
+        localStorage.setItem("trackkar_currentUser", name.trim());
+        navigate(`/team/${upperCode}`);
+      } else {
+        setError("Team not found. Please check the code.");
+        setLoading(false);
+      }
+    } catch (err) {
+      console.error(err);
+      const msg = err?.code ? `Firebase error: ${err.code}` : err?.message || "Error joining team.";
+      setError(msg);
+      setLoading(false);
+    }
   };
 
   return (

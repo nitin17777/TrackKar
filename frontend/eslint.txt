@@ -1,0 +1,42 @@
+
+> trackkar-frontend@0.0.0 lint
+> eslint .
+
+
+D:\Projects\TrackKar\frontend\src\components\dashboard\TaskGrid.jsx
+  160:17  error  'partial' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+D:\Projects\TrackKar\frontend\src\components\layout\Sidebar.jsx
+  32:37  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+  30 |               <p className="font-medium">{name}</p>
+  31 |               <p className="text-xs text-gray-500">
+> 32 |                 Energy: {Math.floor(Math.random()*30)+70}%
+     |                                     ^^^^^^^^^^^^^ Cannot call impure function
+  33 |               </p>
+  34 |             </div>
+  35 |           </div>  react-hooks/purity
+
+D:\Projects\TrackKar\frontend\src\context\AuthContext.jsx
+  7:17  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+D:\Projects\TrackKar\frontend\src\layout\Sidebar.jsx
+  32:37  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+  30 |               <p className="font-medium">{name}</p>
+  31 |               <p className="text-xs text-gray-500">
+> 32 |                 Energy: {Math.floor(Math.random()*30)+70}%
+     |                                     ^^^^^^^^^^^^^ Cannot call impure function
+  33 |               </p>
+  34 |             </div>
+  35 |           </div>  react-hooks/purity
+
+D:\Projects\TrackKar\frontend\src\pages\CreateTeam.jsx
+  3:10  error  'collection' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+Γ£û 5 problems (5 errors, 0 warnings)
+

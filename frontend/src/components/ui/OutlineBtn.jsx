@@ -1,19 +1,23 @@
-export default function OutlineBtn({ children, onClick, className = "" }) {
+import React from 'react';
+
+export default function OutlineBtn({ children, onClick, className = "", disabled = false, type = "button", icon }) {
   return (
     <button
+      type={type}
       onClick={onClick}
-      className={`flex items-center justify-center gap-2 font-bold rounded-2xl px-7 py-3.5 border-2 transition-all duration-200 hover:-translate-y-0.5 active:scale-95 ${className}`}
-      style={{ borderColor: "#00C48C", color: "#00C48C" }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = "#00C48C";
-        e.currentTarget.style.color = "#fff";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = "transparent";
-        e.currentTarget.style.color = "#00C48C";
+      disabled={disabled}
+      className={`group flex items-center justify-center gap-2.5 font-bold rounded-2xl px-8 py-4 text-sm transition-all duration-300 ${className}`}
+      style={{
+        background: "rgba(16,185,129,.07)",
+        color: "#059669",
+        border: "1.5px solid rgba(16,185,129,.3)",
+        boxShadow: "0 4px 20px rgba(16,185,129,.15)",
       }}
     >
-      {children}
+      <span className="relative flex items-center gap-2 transition-transform group-hover:scale-105">
+        {icon}
+        {children}
+      </span>
     </button>
   );
 }
