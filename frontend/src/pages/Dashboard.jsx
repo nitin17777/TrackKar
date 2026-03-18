@@ -5,15 +5,23 @@ import { db } from "../services/firebase";
 import { useToast, ToastContainer } from "../hooks/useToast";
 
 const COLS = {
-  todo:       { label: "To Do",       color: "#6366f1", bg: "rgba(99,102,241,.08)",  border: "rgba(99,102,241,.2)"  },
-  inprogress: { label: "In Progress", color: "#f59e0b", bg: "rgba(245,158,11,.07)",  border: "rgba(245,158,11,.22)" },
-  done:       { label: "Done",        color: "#10b981", bg: "rgba(16,185,129,.07)",  border: "rgba(16,185,129,.22)" },
+  todo:       { label: "To Do",       color: "#6366f1", bg: "rgba(255,255,255,0.85)",  border: "rgba(99,102,241,.5)"  },
+  inprogress: { label: "In Progress", color: "#f59e0b", bg: "rgba(255,255,255,0.85)",  border: "rgba(245,158,11,.5)" },
+  done:       { label: "Done",        color: "#10b981", bg: "rgba(255,255,255,0.85)",  border: "rgba(16,185,129,.5)" },
 };
 
 const PRIORITY = {
   high:   { label: "High",   bg: "rgba(239,68,68,.1)",    color: "#dc2626", dot: "#ef4444" },
   medium: { label: "Medium", bg: "rgba(245,158,11,.1)",   color: "#b45309", dot: "#f59e0b" },
   low:    { label: "Low",    bg: "rgba(16,185,129,.1)",   color: "#059669", dot: "#10b981" },
+};
+
+/* ── Helper ──────────────────────────────────────────────────────────────── */
+const normalizeStatus = (s) => {
+  const l = (s || "").toLowerCase().replace(/[^a-z]/g, "");
+  if (l.includes("progress") || l === "wip") return "inprogress";
+  if (l.includes("done") || l.includes("complete")) return "done";
+  return "todo"; // Default everything else to 'todo'
 };
 
 /* ── Countdown hook ──────────────────────────────────────────────────────── */
@@ -90,19 +98,19 @@ function TaskCard({ task, onMove, onDelete }) {
 
         {/* Move buttons */}
         <div className="ml-auto flex gap-1">
-          {task.status !== "todo" && (
+          {normalizeStatus(task.status) !== "todo" && (
             <button onClick={() => onMove(task.id, "todo")}
               className="text-xs px-2 py-1 rounded-lg font-medium transition-all hover:scale-105"
               style={{ background: "rgba(99,102,241,.1)", color: "#6366f1" }}>← Todo</button>
           )}
-          {task.status !== "inprogress" && (
+          {normalizeStatus(task.status) !== "inprogress" && (
             <button onClick={() => onMove(task.id, "inprogress")}
               className="text-xs px-2 py-1 rounded-lg font-medium transition-all hover:scale-105"
               style={{ background: "rgba(245,158,11,.1)", color: "#b45309" }}>
-              {task.status === "done" ? "← WIP" : "WIP →"}
+              {normalizeStatus(task.status) === "done" ? "← WIP" : "WIP →"}
             </button>
           )}
-          {task.status !== "done" && (
+          {normalizeStatus(task.status) !== "done" && (
             <button onClick={() => onMove(task.id, "done")}
               className="text-xs px-2 py-1 rounded-lg font-medium transition-all hover:scale-105"
               style={{ background: "rgba(16,185,129,.1)", color: "#059669" }}>Done ✓</button>
@@ -116,7 +124,7 @@ function TaskCard({ task, onMove, onDelete }) {
 /* ── Kanban Column ───────────────────────────────────────────────────────── */
 function KanbanCol({ colKey, tasks, onMove, onDelete }) {
   const { label, color, bg, border } = COLS[colKey];
-  const colTasks = tasks.filter(t => t.status === colKey);
+  const colTasks = tasks.filter(t => normalizeStatus(t.status) === colKey);
   return (
     <div className="flex flex-col gap-3">
       {/* Column header */}
@@ -131,8 +139,13 @@ function KanbanCol({ colKey, tasks, onMove, onDelete }) {
 
       {/* Drop zone */}
       <div
-        className="flex-1 min-h-[220px] rounded-2xl p-3 space-y-3 transition-all duration-200"
-        style={{ background: bg, border: `1.5px dashed ${border}` }}
+        className="flex-1 min-h-[220px] rounded-2xl p-3 space-y-3 transition-all duration-200 shadow-sm"
+        style={{ 
+          background: bg, 
+          border: `2px solid ${border}`,
+          backdropFilter: 'blur(16px)',
+          boxShadow: `0 8px 32px rgba(0,0,0,0.04), inset 0 2px 20px rgba(255,255,255,0.5)`
+        }}
       >
         {colTasks.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center py-10 gap-2 opacity-40">
@@ -350,13 +363,13 @@ export default function Dashboard() {
   };
 
   const stats = [
-    { label: "Total",    value: tasks.length,                              color: "#6366f1" },
-    { label: "Done",     value: tasks.filter(t => t.status === "done").length,      color: "#10b981" },
-    { label: "In Progress", value: tasks.filter(t => t.status === "inprogress").length, color: "#f59e0b" },
-    { label: "Members",  value: (project.members || []).length,                    color: "#3b82f6" },
+    { label: "Total",       value: tasks.length, color: "#6366f1" },
+    { label: "Done",        value: tasks.filter(t => normalizeStatus(t.status) === "done").length, color: "#10b981" },
+    { label: "In Progress", value: tasks.filter(t => normalizeStatus(t.status) === "inprogress").length, color: "#f59e0b" },
+    { label: "Members",     value: (project.members || []).length, color: "#3b82f6" },
   ];
 
-  const doneCount = tasks.filter(t => t.status === "done").length;
+  const doneCount = tasks.filter(t => normalizeStatus(t.status) === "done").length;
   const progress = tasks.length > 0 ? Math.round((doneCount / tasks.length) * 100) : 0;
 
   const deadlineStr = project.deadline
@@ -480,8 +493,7 @@ export default function Dashboard() {
         </div>
 
         {/* ── PROGRESS BAR ── */}
-        {tasks.length > 0 && (
-          <div className="rounded-2xl px-5 py-4 mb-6"
+        <div className="rounded-2xl px-5 py-4 mb-6"
             style={{
               background: "rgba(255,255,255,.65)", backdropFilter: "blur(16px)",
               border: "1.5px solid rgba(255,255,255,.88)",
@@ -506,11 +518,10 @@ export default function Dashboard() {
                 }}
               />
             </div>
-            {progress === 100 && (
+            {progress === 100 && tasks.length > 0 && (
               <p className="text-xs font-semibold text-center mt-2" style={{ color: '#10b981' }}>🎉 All tasks completed!</p>
             )}
           </div>
-        )}
         {/* ── DEADLINE BANNER ── */}
         {deadlineStr && (
           <div

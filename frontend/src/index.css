@@ -5,8 +5,8 @@
 /* Custom global styles */
 
 body {
-  @apply bg-slate-900 text-white;
-}
-body {
-  font-family: 'Inter', sans-serif;
+  @apply bg-[#f8fafc] text-slate-800;
+  font-family: 'DM Sans', 'Inter', sans-serif;
+  margin: 0;
+  padding: 0;
 }
