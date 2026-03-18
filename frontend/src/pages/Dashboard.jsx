@@ -2,7 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { doc, onSnapshot, collection, addDoc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../services/firebase";
-import { useToast, ToastContainer } from "../hooks/useToast";
+import { useToast } from "../hooks/useToast.js";
+import ToastContainer from "../components/ui/ToastContainer";
+
 
 const COLS = {
   todo:       { label: "To Do",       color: "#6366f1", bg: "rgba(255,255,255,0.85)",  border: "rgba(99,102,241,.5)"  },

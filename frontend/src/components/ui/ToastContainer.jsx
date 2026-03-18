@@ -1,26 +1,3 @@
-import { useState, useCallback } from 'react';
-
-let toastId = 0;
-
-/**
- * useToast — lightweight toast notification hook.
- * Returns { toasts, toast } where toast({ message, type }) fires a notification.
- * Also exports <ToastContainer toasts={toasts} /> to render them.
- */
-export function useToast() {
-  const [toasts, setToasts] = useState([]);
-
-  const toast = useCallback(({ message, type = 'success', duration = 2800 }) => {
-    const id = ++toastId;
-    setToasts(prev => [...prev, { id, message, type }]);
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, duration);
-  }, []);
-
-  return { toasts, toast };
-}
-
 const ICONS = {
   success: (
     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
@@ -45,7 +22,7 @@ const STYLES = {
   info:    { bg: 'rgba(99,102,241,.1)',  border: 'rgba(99,102,241,.3)',  color: '#6366f1' },
 };
 
-export function ToastContainer({ toasts }) {
+export default function ToastContainer({ toasts }) {
   if (!toasts.length) return null;
   return (
     <>
