@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { doc, onSnapshot, collection, addDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import {
+  doc, onSnapshot, collection, addDoc, updateDoc, deleteDoc, orderBy, query
+} from "firebase/firestore";
 import { db } from "../services/firebase";
 import { useToast } from "../hooks/useToast.js";
 import ToastContainer from "../components/ui/ToastContainer";
@@ -23,7 +25,7 @@ const normalizeStatus = (s) => {
   const l = (s || "").toLowerCase().replace(/[^a-z]/g, "");
   if (l.includes("progress") || l === "wip") return "inprogress";
   if (l.includes("done") || l.includes("complete")) return "done";
-  return "todo"; // Default everything else to 'todo'
+  return "todo";
 };
 
 /* ── Countdown hook ──────────────────────────────────────────────────────── */
@@ -48,8 +50,235 @@ function useCountdown(deadline) {
   return { t, urgent };
 }
 
+/* ── Comment Drawer ──────────────────────────────────────────────────────── */
+function CommentDrawer({ projectId, taskId, taskText, currentUser, onClose }) {
+  const [comments, setComments] = useState([]);
+  const [text, setText] = useState("");
+  const [sending, setSending] = useState(false);
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+    const commentsRef = query(
+      collection(db, "projects", projectId, "tasks", taskId, "comments"),
+      orderBy("createdAt", "asc")
+    );
+    const unsub = onSnapshot(commentsRef, (snap) => {
+      setComments(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return unsub;
+  }, [projectId, taskId]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [comments]);
+
+  const send = async () => {
+    if (!text.trim() || sending) return;
+    setSending(true);
+    await addDoc(collection(db, "projects", projectId, "tasks", taskId, "comments"), {
+      text: text.trim(),
+      author: currentUser,
+      createdAt: new Date().toISOString(),
+    });
+    setText("");
+    setSending(false);
+  };
+
+  const fmt = (iso) => {
+    const d = new Date(iso);
+    return d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) +
+      " · " + d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+  };
+
+  const AVATAR_COLORS = ["#6366f1","#10b981","#f59e0b","#3b82f6","#ec4899","#8b5cf6"];
+  const avatarColor = (name) => AVATAR_COLORS[(name?.charCodeAt(0) || 0) % AVATAR_COLORS.length];
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={onClose}
+        style={{
+          position: "fixed", inset: 0, zIndex: 50,
+          background: "rgba(15,15,35,.35)", backdropFilter: "blur(4px)",
+        }}
+      />
+
+      {/* Drawer */}
+      <div
+        style={{
+          position: "fixed", top: 0, right: 0, bottom: 0, zIndex: 51,
+          width: "min(420px, 96vw)",
+          background: "rgba(255,255,255,.95)", backdropFilter: "blur(32px)",
+          borderLeft: "1.5px solid rgba(99,102,241,.15)",
+          boxShadow: "-24px 0 80px rgba(99,102,241,.12)",
+          display: "flex", flexDirection: "column",
+          animation: "drawerIn .3s cubic-bezier(.22,1,.36,1)",
+          fontFamily: "'DM Sans', sans-serif",
+        }}
+      >
+        <style>{`
+          @keyframes drawerIn { from{transform:translateX(100%)} to{transform:translateX(0)} }
+          @keyframes msgIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+          .cm-msg { animation: msgIn .25s cubic-bezier(.22,1,.36,1) both; }
+          .cm-send:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(99,102,241,.4); }
+          .cm-send:disabled { opacity: .6; cursor: not-allowed; }
+          .cm-textarea:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.1); }
+        `}</style>
+
+        {/* Header */}
+        <div style={{
+          padding: "20px 20px 16px",
+          borderBottom: "1px solid rgba(99,102,241,.1)",
+          background: "rgba(255,255,255,.8)",
+        }}>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                <div style={{
+                  width: 28, height: 28, borderRadius: 8, display: "flex",
+                  alignItems: "center", justifyContent: "center",
+                  background: "linear-gradient(135deg,#6366f1,#818cf8)",
+                  boxShadow: "0 4px 12px rgba(99,102,241,.3)",
+                }}>
+                  <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  </svg>
+                </div>
+                <p style={{ fontSize: 13, fontWeight: 700, color: "#6366f1", margin: 0 }}>Comments</p>
+              </div>
+              <p style={{
+                fontSize: 13, fontWeight: 600, color: "#1f2937", margin: 0,
+                fontFamily: "'Bricolage Grotesque', sans-serif",
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              }}>{taskText}</p>
+            </div>
+            <button
+              onClick={onClose}
+              style={{
+                width: 32, height: 32, borderRadius: 10, border: "1.5px solid rgba(0,0,0,.08)",
+                background: "rgba(0,0,0,.04)", cursor: "pointer", display: "flex",
+                alignItems: "center", justifyContent: "center", flexShrink: 0,
+                color: "#6b7280", transition: "all .15s",
+              }}
+            >
+              <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Messages */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px", display: "flex", flexDirection: "column", gap: 12 }}>
+          {comments.length === 0 ? (
+            <div style={{
+              flex: 1, display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center", opacity: .45, gap: 10,
+            }}>
+              <div style={{
+                width: 48, height: 48, borderRadius: 16, background: "rgba(99,102,241,.08)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth="1.5">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+              </div>
+              <p style={{ fontSize: 13, fontWeight: 600, color: "#6b7280", margin: 0 }}>No comments yet</p>
+              <p style={{ fontSize: 12, color: "#9ca3af", margin: 0 }}>Be the first to comment!</p>
+            </div>
+          ) : (
+            comments.map((c) => {
+              const isMe = c.author === currentUser;
+              return (
+                <div key={c.id} className="cm-msg" style={{
+                  display: "flex", gap: 10, alignItems: "flex-start",
+                  flexDirection: isMe ? "row-reverse" : "row",
+                }}>
+                  {/* Avatar */}
+                  <div style={{
+                    width: 30, height: 30, borderRadius: 10, flexShrink: 0,
+                    background: `linear-gradient(135deg, ${avatarColor(c.author)}, ${avatarColor(c.author)}bb)`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    color: "white", fontSize: 11, fontWeight: 700,
+                    boxShadow: `0 2px 8px ${avatarColor(c.author)}44`,
+                  }}>
+                    {c.author?.[0]?.toUpperCase()}
+                  </div>
+                  <div style={{ maxWidth: "78%", display: "flex", flexDirection: "column", gap: 3, alignItems: isMe ? "flex-end" : "flex-start" }}>
+                    <div style={{
+                      padding: "9px 13px", borderRadius: isMe ? "14px 4px 14px 14px" : "4px 14px 14px 14px",
+                      background: isMe
+                        ? "linear-gradient(135deg,#6366f1,#818cf8)"
+                        : "rgba(255,255,255,.9)",
+                      border: isMe ? "none" : "1.5px solid rgba(99,102,241,.1)",
+                      boxShadow: isMe ? "0 4px 16px rgba(99,102,241,.25)" : "0 2px 8px rgba(0,0,0,.04)",
+                    }}>
+                      <p style={{ fontSize: 13, fontWeight: 500, color: isMe ? "white" : "#1f2937", margin: 0, lineHeight: 1.5 }}>
+                        {c.text}
+                      </p>
+                    </div>
+                    <p style={{ fontSize: 10, color: "#9ca3af", margin: "0 2px" }}>
+                      {isMe ? "You" : c.author} · {fmt(c.createdAt)}
+                    </p>
+                  </div>
+                </div>
+              );
+            })
+          )}
+          <div ref={bottomRef} />
+        </div>
+
+        {/* Input */}
+        <div style={{
+          padding: "14px 20px 20px",
+          borderTop: "1px solid rgba(99,102,241,.08)",
+          background: "rgba(255,255,255,.8)",
+        }}>
+          <div style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>
+            <textarea
+              className="cm-textarea"
+              rows={2}
+              placeholder="Write a comment…"
+              value={text}
+              onChange={e => setText(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+              style={{
+                flex: 1, resize: "none", padding: "10px 13px", borderRadius: 13,
+                border: "1.5px solid rgba(99,102,241,.15)", fontSize: 13,
+                background: "rgba(255,255,255,.65)", color: "#1f2937",
+                fontFamily: "'DM Sans', sans-serif", transition: "all .2s",
+              }}
+            />
+            <button
+              className="cm-send"
+              onClick={send}
+              disabled={!text.trim() || sending}
+              style={{
+                width: 40, height: 40, borderRadius: 12, border: "none", cursor: "pointer",
+                background: "linear-gradient(135deg,#6366f1,#818cf8)",
+                boxShadow: "0 4px 14px rgba(99,102,241,.35)",
+                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                transition: "all .2s",
+              }}
+            >
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2.2">
+                <line x1="22" y1="2" x2="11" y2="13"/>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            </button>
+          </div>
+          <p style={{ fontSize: 10, color: "#9ca3af", margin: "6px 0 0", textAlign: "center" }}>
+            Enter to send · Shift+Enter for new line
+          </p>
+        </div>
+      </div>
+    </>
+  );
+}
+
 /* ── Task Card ───────────────────────────────────────────────────────────── */
-function TaskCard({ task, onMove, onDelete }) {
+function TaskCard({ task, commentCount, onMove, onDelete, onComment }) {
   const [hovered, setHovered] = useState(false);
   const p = PRIORITY[task.priority] || PRIORITY.medium;
   return (
@@ -99,7 +328,20 @@ function TaskCard({ task, onMove, onDelete }) {
         )}
 
         {/* Move buttons */}
-        <div className="ml-auto flex gap-1">
+        <div className="ml-auto flex gap-1 items-center">
+          {/* Comment button */}
+          <button
+            onClick={() => onComment(task.id, task.text)}
+            className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg font-medium transition-all hover:scale-105"
+            style={{ background: "rgba(99,102,241,.07)", color: "#6366f1" }}
+            title="View comments"
+          >
+            <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            {commentCount > 0 && <span>{commentCount}</span>}
+          </button>
+
           {normalizeStatus(task.status) !== "todo" && (
             <button onClick={() => onMove(task.id, "todo")}
               className="text-xs px-2 py-1 rounded-lg font-medium transition-all hover:scale-105"
@@ -124,7 +366,7 @@ function TaskCard({ task, onMove, onDelete }) {
 }
 
 /* ── Kanban Column ───────────────────────────────────────────────────────── */
-function KanbanCol({ colKey, tasks, onMove, onDelete }) {
+function KanbanCol({ colKey, tasks, commentCounts, onMove, onDelete, onComment }) {
   const { label, color, bg, border } = COLS[colKey];
   const colTasks = tasks.filter(t => normalizeStatus(t.status) === colKey);
   return (
@@ -142,8 +384,8 @@ function KanbanCol({ colKey, tasks, onMove, onDelete }) {
       {/* Drop zone */}
       <div
         className="flex-1 min-h-[220px] rounded-2xl p-3 space-y-3 transition-all duration-200 shadow-sm"
-        style={{ 
-          background: bg, 
+        style={{
+          background: bg,
           border: `2px solid ${border}`,
           backdropFilter: 'blur(16px)',
           boxShadow: `0 8px 32px rgba(0,0,0,0.04), inset 0 2px 20px rgba(255,255,255,0.5)`
@@ -159,7 +401,16 @@ function KanbanCol({ colKey, tasks, onMove, onDelete }) {
             <p className="text-xs font-medium" style={{ color }}>No tasks yet</p>
           </div>
         ) : (
-          colTasks.map(t => <TaskCard key={t.id} task={t} onMove={onMove} onDelete={onDelete} />)
+          colTasks.map(t => (
+            <TaskCard
+              key={t.id}
+              task={t}
+              commentCount={commentCounts[t.id] || 0}
+              onMove={onMove}
+              onDelete={onDelete}
+              onComment={onComment}
+            />
+          ))
         )}
       </div>
     </div>
@@ -173,14 +424,20 @@ export default function Dashboard() {
 
   const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
-  
+  const [commentCounts, setCommentCounts] = useState({});
+
   const [taskText, setTaskText] = useState("");
   const [taskAssign, setTaskAssign] = useState("");
   const [taskPriority, setTaskPriority] = useState("medium");
   const [copied, setCopied] = useState(false);
+  const [inviteCopied, setInviteCopied] = useState(false);
   const [ready, setReady] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const inputRef = useRef(null);
+
+  // Comment drawer state
+  const [commentTaskId, setCommentTaskId] = useState(null);
+  const [commentTaskText, setCommentTaskText] = useState("");
 
   const currentUser = localStorage.getItem("trackkar_currentUser") || "You";
   const { toasts, toast } = useToast();
@@ -250,10 +507,8 @@ export default function Dashboard() {
     document.title = 'TrackKar — Dashboard';
     setTimeout(() => setReady(true), 40);
 
-    // Firestore Integration
     if (!code) return;
 
-    // Listen to Project details
     const projRef = doc(db, "projects", code.toUpperCase());
     const unsubProj = onSnapshot(projRef, (docSnap) => {
       if (docSnap.exists()) {
@@ -263,16 +518,22 @@ export default function Dashboard() {
       }
     });
 
-    // Listen to Tasks
     const tasksRef = collection(db, "projects", code.toUpperCase(), "tasks");
     const unsubTasks = onSnapshot(tasksRef, (snapshot) => {
       const liveTasks = [];
       snapshot.forEach(doc => {
         liveTasks.push({ id: doc.id, ...doc.data() });
       });
-      // Sort tasks by creation time (ascending) effectively
       liveTasks.sort((a,b) => (a.createdAt || "").localeCompare(b.createdAt || ""));
       setTasks(liveTasks);
+
+      // Subscribe to comment counts for each task
+      liveTasks.forEach(task => {
+        const commRef = collection(db, "projects", code.toUpperCase(), "tasks", task.id, "comments");
+        onSnapshot(commRef, (snap) => {
+          setCommentCounts(prev => ({ ...prev, [task.id]: snap.size }));
+        });
+      });
     });
 
     return () => {
@@ -283,14 +544,12 @@ export default function Dashboard() {
 
   const { t: countdown, urgent } = useCountdown(project?.deadline);
 
-  // ── Loading skeleton ──────────────────────────────────────────────────────
   if (!project) return (
     <div style={{ minHeight:'100vh', background:'linear-gradient(135deg,#f0effe 0%,#f5fff9 50%,#eef6ff 100%)', fontFamily:"'DM Sans',sans-serif" }}>
       <style>{`
         @keyframes shimmerBg { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
         .sk { background:linear-gradient(90deg,rgba(255,255,255,.4) 0%,rgba(255,255,255,.85) 50%,rgba(255,255,255,.4) 100%); background-size:200% 100%; animation:shimmerBg 1.6s ease-in-out infinite; border-radius:12px; }
       `}</style>
-      {/* Skeleton header */}
       <div style={{ height:70, background:'rgba(255,255,255,.7)', borderBottom:'1px solid rgba(255,255,255,.85)', display:'flex', alignItems:'center', padding:'0 24px', gap:12, backdropFilter:'blur(24px)' }}>
         <div className="sk" style={{ width:36, height:36, borderRadius:10 }} />
         <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
@@ -299,7 +558,6 @@ export default function Dashboard() {
         </div>
         <div className="sk" style={{ margin:'0 auto', width:100, height:32, borderRadius:10 }} />
       </div>
-      {/* Skeleton body */}
       <div style={{ maxWidth:1280, margin:'0 auto', padding:'32px 16px' }}>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16, marginBottom:24 }}>
           {[0,1,2,3].map(i => <div key={i} className="sk" style={{ height:90, borderRadius:16 }} />)}
@@ -362,6 +620,18 @@ export default function Dashboard() {
   const copyCode = () => {
     navigator.clipboard.writeText(project.id).catch(() => {});
     setCopied(true); setTimeout(() => setCopied(false), 2000);
+  };
+
+  const copyInvite = () => {
+    const url = `https://trackkar.vercel.app/join?code=${project.id}`;
+    navigator.clipboard.writeText(url).catch(() => {});
+    setInviteCopied(true); setTimeout(() => setInviteCopied(false), 2500);
+    toast({ message: '🔗 Invite link copied!', type: 'success' });
+  };
+
+  const openComments = (taskId, text) => {
+    setCommentTaskId(taskId);
+    setCommentTaskText(text);
   };
 
   const stats = [
@@ -455,8 +725,37 @@ export default function Dashboard() {
           </span>
         </button>
 
-        {/* Right: user avatar + back */}
+        {/* Right: invite + user avatar + back */}
         <div className="flex items-center gap-3">
+          {/* Invite link button */}
+          <button
+            onClick={copyInvite}
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 hover:scale-105 active:scale-95"
+            style={{
+              background: inviteCopied ? "rgba(16,185,129,.1)" : "rgba(99,102,241,.08)",
+              border: `1px solid ${inviteCopied ? "rgba(16,185,129,.3)" : "rgba(99,102,241,.18)"}`,
+              color: inviteCopied ? "#059669" : "#6366f1",
+            }}
+            title="Copy invite link"
+          >
+            {inviteCopied ? (
+              <>
+                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Link copied!
+              </>
+            ) : (
+              <>
+                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                </svg>
+                Invite
+              </>
+            )}
+          </button>
+
           <button onClick={() => navigate("/")}
             className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-gray-400 hover:text-indigo-500 transition-colors">
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -524,6 +823,7 @@ export default function Dashboard() {
               <p className="text-xs font-semibold text-center mt-2" style={{ color: '#10b981' }}>🎉 All tasks completed!</p>
             )}
           </div>
+
         {/* ── DEADLINE BANNER ── */}
         {deadlineStr && (
           <div
@@ -612,7 +912,15 @@ export default function Dashboard() {
         {/* ── KANBAN BOARD ── */}
         <div className="grid md:grid-cols-3 gap-5">
           {Object.keys(COLS).map(col => (
-            <KanbanCol key={col} colKey={col} tasks={tasks} onMove={moveTask} onDelete={deleteTask} />
+            <KanbanCol
+              key={col}
+              colKey={col}
+              tasks={tasks}
+              commentCounts={commentCounts}
+              onMove={moveTask}
+              onDelete={deleteTask}
+              onComment={openComments}
+            />
           ))}
         </div>
 
@@ -669,6 +977,17 @@ export default function Dashboard() {
           ))}
         </div>
       </main>
+
+      {/* ── COMMENT DRAWER ── */}
+      {commentTaskId && (
+        <CommentDrawer
+          projectId={project.id}
+          taskId={commentTaskId}
+          taskText={commentTaskText}
+          currentUser={currentUser}
+          onClose={() => setCommentTaskId(null)}
+        />
+      )}
 
       <ToastContainer toasts={toasts} />
     </div>

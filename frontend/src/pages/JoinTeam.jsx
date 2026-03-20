@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { db } from "../services/firebase";
 
@@ -10,7 +10,8 @@ import StyledInput from "../components/ui/StyledInput";
 export default function JoinTeam() {
   const navigate = useNavigate();
 
-  const [code, setCode] = useState("");
+  const [searchParams] = useSearchParams();
+  const [code, setCode] = useState(searchParams.get("code") || "");
   const [name, setName] = useState("");
   const [ready, setReady] = useState(false);
   const [loading, setLoading] = useState(false);
