@@ -30,7 +30,7 @@ function ParticleCanvas() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       pts.forEach((p) => {
         p.x += p.vx; p.y += p.vy;
-        if (p.x < 0 || p.x > canvas.width)  p.vx *= -1;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
         if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
@@ -171,15 +171,15 @@ export default function Landing() {
       .live-dot { animation: blink 2s ease-in-out infinite; }
     `;
     document.head.appendChild(style);
-    document.title = 'TrackKar — Track Smarter, Build Faster';
+    document.title = 'TrackKar -Track Smarter, Build Faster';
     setTimeout(() => setReady(true), 40);
   }, []);
 
   const features = [
-    { icon: "⚡", title: "Setup in 30 sec",  desc: "Zero config. Name it, share the code, ship.",   accent: "#f59e0b" },
-    { icon: "🎯", title: "Kanban Board",      desc: "To Do → In Progress → Done. Clean & fast.",    accent: "#6366f1" },
-    { icon: "🔗", title: "Instant Invite",    desc: "6-letter code. No accounts. No friction.",     accent: "#10b981" },
-    { icon: "🕐", title: "Live Countdown",    desc: "Deadline clock always visible. Stay sharp.",   accent: "#3b82f6" },
+    { icon: "⚡", title: "Setup in 30 sec", desc: "Zero config. Name it, share the code, ship.", accent: "#f59e0b" },
+    { icon: "🎯", title: "Kanban Board", desc: "To Do → In Progress → Done. Clean & fast.", accent: "#6366f1" },
+    { icon: "🔗", title: "Instant Invite", desc: "6-letter code. No accounts. No friction.", accent: "#10b981" },
+    { icon: "🕐", title: "Live Countdown", desc: "Deadline clock always visible. Stay sharp.", accent: "#3b82f6" },
   ];
 
   return (
@@ -197,8 +197,8 @@ export default function Landing() {
 
       {/* ── blobs ── */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full blur-[100px]"  style={{ background: "radial-gradient(circle,rgba(99,102,241,.22),transparent)" }} />
-        <div className="absolute top-10  -right-32 w-[420px] h-[420px] rounded-full blur-[90px]"  style={{ background: "radial-gradient(circle,rgba(16,185,129,.18),transparent)" }} />
+        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full blur-[100px]" style={{ background: "radial-gradient(circle,rgba(99,102,241,.22),transparent)" }} />
+        <div className="absolute top-10  -right-32 w-[420px] h-[420px] rounded-full blur-[90px]" style={{ background: "radial-gradient(circle,rgba(16,185,129,.18),transparent)" }} />
         <div className="absolute bottom-0 left-1/2  w-[600px] h-[260px] rounded-full blur-[100px]" style={{ background: "radial-gradient(circle,rgba(99,102,241,.12),transparent)", transform: "translateX(-50%)" }} />
       </div>
 
@@ -208,7 +208,7 @@ export default function Landing() {
           <div className="w-9 h-9 rounded-xl flex items-center justify-center fly"
             style={{ background: "linear-gradient(135deg,#6366f1,#818cf8)", boxShadow: "0 0 18px rgba(99,102,241,.45)" }}>
             <svg width="17" height="17" fill="none" viewBox="0 0 24 24">
-              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="white"/>
+              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="white" />
             </svg>
           </div>
           <span className="text-lg font-extrabold text-indigo-600" style={{ fontFamily: "'Bricolage Grotesque',sans-serif", letterSpacing: "-.02em" }}>
@@ -264,7 +264,7 @@ export default function Landing() {
             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
               style={{ background: "linear-gradient(135deg,#818cf8,#a5b4fc)" }} />
             <span className="relative flex items-center gap-2">
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>
               Start New Project
             </span>
             <span className="relative text-indigo-200 text-xs font-normal">→ get team code</span>
@@ -275,7 +275,7 @@ export default function Landing() {
             className="group flex items-center justify-center gap-2.5 font-bold rounded-2xl px-8 py-4 text-sm transition-all duration-300 glow-green"
             style={{ background: "rgba(16,185,129,.07)", color: "#059669", border: "1.5px solid rgba(16,185,129,.3)" }}
           >
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
             Join Existing Team
             <span className="text-emerald-400 text-xs font-normal opacity-70">→ enter code</span>
           </button>
@@ -283,17 +283,17 @@ export default function Landing() {
 
         {/* badges row */}
         <div className={`fu flex flex-wrap justify-center gap-3 mb-16 ${ready ? "" : "opacity-0"}`} style={{ animationDelay: ".42s" }}>
-          <FloatBadge icon="⚡" text="Setup in 30 seconds"      color="#6366f1" delay=".1s" />
-          <FloatBadge icon="🤝" text="Real-time collaboration"  color="#10b981" delay=".2s" />
-          <FloatBadge icon="🎯" text="Built for small teams"    color="#3b82f6" delay=".3s" />
+          <FloatBadge icon="⚡" text="Setup in 30 seconds" color="#6366f1" delay=".1s" />
+          <FloatBadge icon="🤝" text="Real-time collaboration" color="#10b981" delay=".2s" />
+          <FloatBadge icon="🎯" text="Built for small teams" color="#3b82f6" delay=".3s" />
         </div>
 
         {/* stats */}
         <div className={`fu grid grid-cols-3 gap-4 w-full max-w-md mb-20 ${ready ? "" : "opacity-0"}`} style={{ animationDelay: ".5s" }}>
           {[
-            { to: 30, suffix: "s",  label: "to launch",  color: "#818cf8" },
+            { to: 30, suffix: "s", label: "to launch", color: "#818cf8" },
             { to: 100, suffix: "%", label: "no signups", color: "#34d399" },
-            { to: 24, suffix: "h",  label: "hackathon ✓",color: "#60a5fa" },
+            { to: 24, suffix: "h", label: "hackathon ✓", color: "#60a5fa" },
           ].map((s) => (
             <div key={s.label} className="rounded-2xl p-4 text-center backdrop-blur-md"
               style={{ background: "rgba(255,255,255,.55)", border: "1px solid rgba(255,255,255,.8)", boxShadow: "0 2px 12px rgba(0,0,0,.04)" }}>
@@ -334,14 +334,14 @@ export default function Landing() {
           <button onClick={() => navigate("/start")}
             className="inline-flex items-center gap-2 font-bold rounded-2xl px-9 py-3.5 text-sm text-white transition-all duration-300 glow-purple"
             style={{ background: "linear-gradient(135deg,#6366f1,#818cf8)" }}>
-            Start for free — it's instant ⚡
+            Start for free - it's instant ⚡
           </button>
         </div>
       </section>
 
       {/* ── FOOTER ── */}
       <footer className="relative z-10 text-center pb-8 text-xs text-gray-400">
-        Built with 💜 for builders who ship — TrackKar © 2026
+        Built with 💜 for builders who ship - TrackKar © 2026
       </footer>
     </div>
   );
