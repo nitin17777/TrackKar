@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🚀 TrackKar
+# TrackKar
 
 ### **Track Smarter. Build Faster.**
 
@@ -23,7 +23,7 @@ Real-time, zero-friction task tracker crafted specifically for hackathons, sprin
 
 ## 💡 Overview
 
-Traditional project management tools are heavy, require every teammate to create an account, verify emails, and navigate complicated configuration menus — wasting precious time during hackathons and tight deadlines.
+Traditional project management tools are heavy, require every teammate to create an account, verify emails, and navigate complicated configuration menus wasting precious time during hackathons and tight deadlines.
 
 **TrackKar** eliminates all friction:
 1. **Create a project in 10 seconds** and set a deadline.
