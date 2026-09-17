@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🚀 TrackKar (Frontend)
+# 🚀 TrackKar
 
 ### **Track Smarter. Build Faster.**
 
@@ -63,32 +63,34 @@ Traditional project management tools are heavy, require every teammate to create
 ## 📁 Project Structure
 
 ```text
-frontend/
-├── public/                 # Static assets & favicon
-├── src/
-│   ├── components/
-│   │   └── ui/             # Reusable UI primitives (GlassCard, Buttons, ToastContainer, etc.)
-│   ├── hooks/              # Custom hooks (useCountdown, useToast)
-│   ├── pages/              # Application views
-│   │   ├── Landing.jsx     # Hero landing page with animated particles & features
-│   │   ├── GetStarted.jsx  # Route choice (Create vs Join)
-│   │   ├── CreateTeam.jsx   # Project initialization form & code generator
-│   │   ├── JoinTeam.jsx    # Room code entry & URL parameter auto-join
-│   │   ├── Dashboard.jsx   # Realtime Kanban dashboard, stats, timer & comments drawer
-│   │   └── NotFound.jsx    # 404 handler
-│   ├── routes/
-│   │   └── AppRoutes.jsx   # Client-side router configuration
-│   ├── services/
-│   │   └── firebase.js     # Firebase app initialization & helpers
-│   ├── utils/              # Helper utilities (generateCode, etc.)
-│   ├── App.jsx             # Root React component
-│   ├── main.jsx            # React DOM entrypoint
-│   └── index.css           # Global Tailwind and font styles
-├── .env.example            # Environment variable template
-├── package.json            # Project dependencies & scripts
-├── tailwind.config.js      # Tailwind configuration
-├── vite.config.js          # Vite configuration
-└── vercel.json             # SPA routing rewrite rules for Vercel
+TrackKar/
+├── frontend/
+│   ├── public/                 # Static assets & favicon
+│   ├── src/
+│   │   ├── components/
+│   │   │   └── ui/             # Reusable UI primitives (GlassCard, Buttons, ToastContainer, etc.)
+│   │   ├── hooks/              # Custom hooks (useCountdown, useToast)
+│   │   ├── pages/              # Application views
+│   │   │   ├── Landing.jsx     # Hero landing page with animated particles & features
+│   │   │   ├── GetStarted.jsx  # Route choice (Create vs Join)
+│   │   │   ├── CreateTeam.jsx   # Project initialization form & code generator
+│   │   │   ├── JoinTeam.jsx    # Room code entry & URL parameter auto-join
+│   │   │   ├── Dashboard.jsx   # Realtime Kanban dashboard, stats, timer & comments drawer
+│   │   │   └── NotFound.jsx    # 404 handler
+│   │   ├── routes/
+│   │   │   └── AppRoutes.jsx   # Client-side router configuration
+│   │   ├── services/
+│   │   │   └── firebase.js     # Firebase app initialization & helpers
+│   │   ├── utils/              # Helper utilities (generateCode, etc.)
+│   │   ├── App.jsx             # Root React component
+│   │   ├── main.jsx            # React DOM entrypoint
+│   │   └── index.css           # Global Tailwind and font styles
+│   ├── .env.example            # Environment variable template
+│   ├── package.json            # Project dependencies & scripts
+│   ├── tailwind.config.js      # Tailwind configuration
+│   ├── vite.config.js          # Vite configuration
+│   └── vercel.json             # SPA routing rewrite rules for Vercel
+└── README.md                   # Repository documentation
 ```
 
 ---
@@ -130,22 +132,29 @@ Follow these steps to set up TrackKar locally on your machine.
 - `npm` or `yarn` / `pnpm`
 - A free [Firebase Project](https://console.firebase.google.com/)
 
-### 1. Install Dependencies
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/nitin17777/TrackKar.git
+cd TrackKar/frontend
+```
+
+### 2. Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 2. Configure Firebase
+### 3. Configure Firebase
 
 1. Head over to the [Firebase Console](https://console.firebase.google.com/) and create a new project.
 2. In the project dashboard, add a new **Web App** (`</>`) and copy the Firebase configuration credentials.
 3. Under **Build > Firestore Database**, click **Create database** (Start in *test mode* or use the rules below).
 4. Under **Build > Authentication**, enable **Anonymous** sign-in (optional, supported by default).
 
-### 3. Setup Environment Variables
+### 4. Setup Environment Variables
 
-Duplicate `.env.example` to create a `.env` file:
+Duplicate `.env.example` to create a `.env` file in the `frontend` folder:
 
 ```bash
 cp .env.example .env
@@ -162,7 +171,7 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
 VITE_FIREBASE_APP_ID=your_app_id
 ```
 
-### 4. Start the Development Server
+### 5. Start the Development Server
 
 ```bash
 npm run dev
